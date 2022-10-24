@@ -35,44 +35,31 @@ public class Singnaling : MonoBehaviour
 
     private void Activate()
     {
-        StopNonNullCoroutine(_activeCoroutine);
-
         _alarm.Play();
 
-        _activeCoroutine = StartCoroutine(RaiseVolume());
+        RestartCoroutine(_maxVolume);
     }
 
     private void Deactivate()
     {
-        StopNonNullCoroutine(_activeCoroutine);
-
-        _activeCoroutine = StartCoroutine(ReduceVolume());
+        RestartCoroutine(_minVolume);
     }
 
-    private void StopNonNullCoroutine(Coroutine coroutine)
+    private void RestartCoroutine(float targetVolume)
     {
-
         if (_activeCoroutine != null)
         {
-            StopCoroutine(coroutine);
+            StopCoroutine(_activeCoroutine);
         }
+
+        _activeCoroutine = StartCoroutine(ChangeVolume(targetVolume));
     }
 
-    private IEnumerator RaiseVolume()
+    private IEnumerator ChangeVolume(float targetVolume)
     {
-        while (_alarm.volume < _maxVolume)
+        while (_alarm.volume != targetVolume)
         {
-            _alarm.volume = Mathf.MoveTowards(_alarm.volume, _maxVolume, _volumeChangeStep * Time.deltaTime);
-
-            yield return null;
-        }
-    }
-
-    private IEnumerator ReduceVolume()
-    {
-        while (_alarm.volume > _minVolume)
-        {
-            _alarm.volume = Mathf.MoveTowards(_alarm.volume, _minVolume, _volumeChangeStep * Time.deltaTime);
+            _alarm.volume = Mathf.MoveTowards(_alarm.volume, targetVolume, _volumeChangeStep * Time.deltaTime);
 
             if (_alarm.volume == _minVolume)
             {
