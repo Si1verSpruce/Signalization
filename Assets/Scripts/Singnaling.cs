@@ -6,9 +6,9 @@ using UnityEngine;
 
 public class Singnaling : MonoBehaviour
 {
-    [SerializeField] private float _alarmMinVolume;
-    [SerializeField] private float _alarmMaxVolume;
-    [SerializeField] private float _alarmVolumeChangeStep;
+    [SerializeField] private float _minVolume;
+    [SerializeField] private float _maxVolume;
+    [SerializeField] private float _volumeChangeStep;
 
     private AudioSource _alarm;
     private bool _isScammerEntered;
@@ -16,28 +16,28 @@ public class Singnaling : MonoBehaviour
     private void Awake()
     {
         _alarm = GetComponent<AudioSource>();
-        _alarm.volume = _alarmMinVolume;
+        _alarm.volume = _minVolume;
     }
 
     private void Update()
     {
         if (_isScammerEntered)
         {
-            if (_alarm.volume == _alarmMinVolume)
+            if (_alarm.volume == _minVolume)
             {
                 _alarm.Play();
             }
 
-            if (_alarm.volume < _alarmMaxVolume)
+            if (_alarm.volume < _maxVolume)
             {
-                _alarm.volume = Mathf.MoveTowards(_alarm.volume, _alarmMaxVolume, _alarmVolumeChangeStep * Time.deltaTime);
+                _alarm.volume = Mathf.MoveTowards(_alarm.volume, _maxVolume, _volumeChangeStep * Time.deltaTime);
             }
         }
         else
         {
-            if (_alarm.volume  > _alarmMinVolume)
+            if (_alarm.volume  > _minVolume)
             {
-                _alarm.volume = Mathf.MoveTowards(_alarm.volume, _alarmMinVolume, _alarmVolumeChangeStep * Time.deltaTime);
+                _alarm.volume = Mathf.MoveTowards(_alarm.volume, _minVolume, _volumeChangeStep * Time.deltaTime);
             }
             else
             {
