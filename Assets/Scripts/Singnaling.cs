@@ -11,54 +11,75 @@ public class Singnaling : MonoBehaviour
     [SerializeField] private float _volumeChangeStep;
 
     private AudioSource _alarm;
-    private bool _isScammerEntered;
+    private Sensor _sensor;
+    private Coroutine _activeCoroutine;
 
     private void Awake()
     {
         _alarm = GetComponent<AudioSource>();
         _alarm.volume = _minVolume;
+        _sensor = GetComponentInChildren<Sensor>();
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        if (_isScammerEntered)
-        {
-            if (_alarm.volume == _minVolume)
-            {
-                _alarm.Play();
-            }
+        _sensor.Entered += Activate;
+        _sensor.Released += Deactivate;
+    }
 
-            if (_alarm.volume < _maxVolume)
-            {
-                _alarm.volume = Mathf.MoveTowards(_alarm.volume, _maxVolume, _volumeChangeStep * Time.deltaTime);
-            }
-        }
-        else
+    private void OnDisable()
+    {
+        _sensor.Entered -= Activate;
+        _sensor.Released -= Deactivate;
+    }
+
+    private void Activate()
+    {
+        StopNonNullCoroutine(_activeCoroutine);
+
+        _alarm.Play();
+
+        _activeCoroutine = StartCoroutine(RaiseVolume());
+    }
+
+    private void Deactivate()
+    {
+        StopNonNullCoroutine(_activeCoroutine);
+
+        _activeCoroutine = StartCoroutine(ReduceVolume());
+    }
+
+    private void StopNonNullCoroutine(Coroutine coroutine)
+    {
+
+        if (_activeCoroutine != null)
         {
-            if (_alarm.volume  > _minVolume)
-            {
-                _alarm.volume = Mathf.MoveTowards(_alarm.volume, _minVolume, _volumeChangeStep * Time.deltaTime);
-            }
-            else
+            StopCoroutine(coroutine);
+        }
+    }
+
+    private IEnumerator RaiseVolume()
+    {
+        while (_alarm.volume < _maxVolume)
+        {
+            _alarm.volume = Mathf.MoveTowards(_alarm.volume, _maxVolume, _volumeChangeStep * Time.deltaTime);
+
+            yield return null;
+        }
+    }
+
+    private IEnumerator ReduceVolume()
+    {
+        while (_alarm.volume > _minVolume)
+        {
+            _alarm.volume = Mathf.MoveTowards(_alarm.volume, _minVolume, _volumeChangeStep * Time.deltaTime);
+
+            if (_alarm.volume == _minVolume)
             {
                 _alarm.Stop();
             }
-        }
-    }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.TryGetComponent<Scammer>(out Scammer scammer))
-        {
-            _isScammerEntered = true;
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.TryGetComponent<Scammer>(out Scammer scammer))
-        {
-            _isScammerEntered = false;
+            yield return null;
         }
     }
 }
